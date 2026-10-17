@@ -2496,17 +2496,31 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 
 	rows.append(header)
 
-	for player in combat_resurrect['players']:
+
+	sorted_items = sorted(
+		combat_resurrect['players'].items(),
+		key=lambda item: sum(skill_data.get('total', 0) for skill_data in item[1].values()),
+		reverse=True
+	)
+
+	# 2. Iterate over the sorted items
+	for player, player_data in sorted_items:
+		# 'player' is the key string (e.g., "Guardian|Name|Account|Group|Time")
+		# 'player_data' is the value (the dictionary of skills)
+		
 		profession, name, account, group, active_time = player.split('|')
 		time_secs = int(active_time) / 1000
 
 		abbrv = profession[:3]
 		profession = "{{" + profession + "}}"
+		
 		row = f"|{group} |<span data-tooltip='{account}'> {name} </span>| {profession} {abbrv} | {time_secs:,.1f}|"
+		
 		for skill in sorted_res_skills:
-			if skill in combat_resurrect['players'][player]:
-				total = f"{combat_resurrect['players'][player][skill].get('total', 0):,.0f}"
-				hits = f"{combat_resurrect['players'][player][skill].get('hits', 0):,.0f}"
+			if skill in player_data:
+				total = f"{player_data[skill].get('total', 0):,.0f}"
+				hits = f"{player_data[skill].get('hits', 0):,.0f}"
+				
 				if skill == 's10244':
 					row += f' <span data-tooltip="{hits} Casts"> {total} </span>|'
 				elif skill == 'kb_rally':
@@ -2517,6 +2531,7 @@ def build_combat_resurrection_stats_tid(top_stats: dict, skill_data: dict, buff_
 				row += f' |'
 
 		rows.append(row)
+
 	rows.append(f"| {caption} |c")
 	rows.append('\n\n</div>\n\n')
 	combat_resurrect_text = "\n".join(rows)
