@@ -3587,31 +3587,25 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 		header += "|!Player |!Healing | !Downed Healing| !Barrier|h"
 		rows.append(header)
 
-		targets_used = []
-		if 'heal_targets' in top_stats['player'][healer]['extHealingStats']:
-			for target in top_stats['player'][healer]['extHealingStats']['heal_targets']:
-				target_barrier = 0
-				targets_used.append(target)
-				target_healing = top_stats['player'][healer]['extHealingStats']['heal_targets'][target]['outgoing_healing']
-				target_downed = top_stats['player'][healer]['extHealingStats']['heal_targets'][target]['downed_healing']
-				if 'barrier_targets' in top_stats['player'][healer]['extBarrierStats']:
-					if target in top_stats['player'][healer]['extBarrierStats']['barrier_targets']:
-						target_barrier = top_stats['player'][healer]['extBarrierStats']['barrier_targets'][target]['outgoing_barrier']
+		player     = top_stats['player'][healer]
+		heal_stats = player.get('extHealingStats', {})
+		bar_stats  = player.get('extBarrierStats', {})
 
-				row = f"|{target} | {target_healing:,.0f} | {target_downed:,.0f}| {target_barrier:,.0f}|"
+		heal_targets = heal_stats.get('heal_targets') or {}
+		bar_targets  = bar_stats.get('barrier_targets') or {}
+		all_targets  = set(heal_targets.keys()) | set(bar_targets.keys())
 
-				rows.append(row)
+		for target in sorted(all_targets,
+							key=lambda t: heal_targets.get(t, {}).get('outgoing_healing', 0) +
+										bar_targets.get(t, {}).get('outgoing_barrier', 0),
+							reverse=True):
 
-		if 'barrier_targets' in top_stats['player'][healer]['extBarrierStats']:
-			for target in top_stats['player'][healer]['extBarrierStats']['barrier_targets']:
-				if target not in targets_used:
-					target_healing = 0
-					target_downed = 0
-					target_barrier = top_stats['player'][healer]['extBarrierStats']['barrier_targets'][target]['outgoing_barrier']
+			th = heal_targets.get(target, {}).get('outgoing_healing', 0)
+			td = heal_targets.get(target, {}).get('downed_healing', 0)
+			tb = bar_targets.get(target, {}).get('outgoing_barrier', 0)
 
-				row = f"|{target} | {target_healing:,.0f} | {target_downed:,.0f}| {target_barrier:,.0f}|"
+			rows.append(f"|{target} | {th:,.0f} | {td:,.0f}| {tb:,.0f}|")
 
-				rows.append(row)
 
 		rows.append("\n\n</div>\n\n</div>")
 
