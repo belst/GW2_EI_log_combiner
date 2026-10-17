@@ -3515,16 +3515,27 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 
 		outgoing_healing = top_stats['player'][healer]['extHealingStats'].get('outgoing_healing', 0)
 		if outgoing_healing:
-			for skill in top_stats['player'][healer]['extHealingStats']['skills']:
-				skill_name = skill_data.get(skill, {}).get("name", buff_data.get(skill.replace("s", "b"), {}).get("name", ""))
-				skill_icon = skill_data.get(skill, {}).get("icon", buff_data.get(skill.replace("s", "b"), {}).get("icon", ""))
-				entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-				hits = top_stats['player'][healer]['extHealingStats']['skills'][skill]['hits']
-				total_healing = top_stats['player'][healer]['extHealingStats']['skills'][skill]['healing']
-				avg_healing = total_healing/hits if hits > 0 else 0
-				max_heal = top_stats['player'][healer]['extHealingStats']['skills'][skill]['max'] if total_healing > 0 else 0
+			ext_stats = top_stats['player'][healer]['extHealingStats']
+			skills    = ext_stats['skills']
 
-				row = f"|{entry} | {hits:,.0f} | {total_healing:,.0f}| {avg_healing:,.0f}| {max_heal:,.0f}| {total_healing/outgoing_healing*100:,.2f}%|"
+			# Sort skills by total healing descending
+			for skill in sorted(skills, key=lambda s: skills[s]['healing'], reverse=True):
+				buff_key = skill.replace("s", "b")
+				s_entry  = skill_data.get(skill, {})
+				b_entry  = buff_data.get(buff_key, {})
+
+				skill_name = s_entry.get("name", b_entry.get("name", ""))
+				skill_icon = s_entry.get("icon", b_entry.get("icon", ""))
+				entry      = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+
+				s_data = skills[skill]
+				hits   = s_data['hits']
+				total_healing = s_data['healing']
+				avg_healing  = total_healing / hits if hits > 0 else 0
+				max_heal     = s_data['max'] if total_healing > 0 else 0
+
+				pct = total_healing / outgoing_healing * 100
+				row = f"|{entry} | {hits:,.0f} | {total_healing:,.0f}| {avg_healing:,.0f}| {max_heal:,.0f}| {pct:,.2f}%|"
 
 				rows.append(row)
 
@@ -3542,17 +3553,27 @@ def build_healer_outgoing_tids(top_stats: dict, skill_data: dict, buff_data: dic
 
 		outgoing_barrier = top_stats['player'][healer]['extBarrierStats'].get('outgoing_barrier', 0)
 		if outgoing_barrier:
+			ext_stats = top_stats['player'][healer]['extBarrierStats']
+			skills    = ext_stats['skills']
 
-			for skill in top_stats['player'][healer]['extBarrierStats']['skills']:
-				skill_name = skill_data.get(skill, {}).get("name", buff_data.get(skill.replace("s", "b"), {}).get("name", ""))
-				skill_icon = skill_data.get(skill, {}).get("icon", buff_data.get(skill.replace("s", "b"), {}).get("icon", ""))
-				entry = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
-				max_barrier = top_stats['player'][healer]['extBarrierStats']['skills'][skill]['max']
-				hits = top_stats['player'][healer]['extBarrierStats']['skills'][skill]['hits']
-				total_barrier = top_stats['player'][healer]['extBarrierStats']['skills'][skill]['totalBarrier']
-				avg_barrier = total_barrier/hits if hits > 0 else 0
+			# Sort skills by total barrier descending
+			for skill in sorted(skills, key=lambda s: skills[s]['totalBarrier'], reverse=True):
+				buff_key = skill.replace("s", "b")
+				s_entry  = skill_data.get(skill, {})
+				b_entry  = buff_data.get(buff_key, {})
 
-				row = f"|{entry} | {hits:,.0f} | {total_barrier:,.0f}| {avg_barrier:,.0f}| {max_barrier:,.0f}| {total_barrier/outgoing_barrier*100:,.2f}%|"
+				skill_name = s_entry.get("name", b_entry.get("name", ""))
+				skill_icon = s_entry.get("icon", b_entry.get("icon", ""))
+				entry      = f"[img width=24 [{skill_name}|{skill_icon}]]-{skill_name}"
+
+				s_data = skills[skill]
+				hits   = s_data['hits']
+				max_barrier = s_data['max']
+				total_barrier = s_data['totalBarrier']
+				avg_barrier  = total_barrier / hits if hits > 0 else 0
+
+				pct = total_barrier / outgoing_barrier * 100
+				row = f"|{entry} | {hits:,.0f} | {total_barrier:,.0f}| {avg_barrier:,.0f}| {max_barrier:,.0f}| {pct:,.2f}%|"
 
 				rows.append(row)
 
