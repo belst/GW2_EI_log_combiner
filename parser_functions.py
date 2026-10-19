@@ -3797,7 +3797,7 @@ def parse_file(file_path, fight_num, guild_data, fight_data_charts, blacklist):
 
 		get_minions_by_player(player, name, profession)
 
-		if player["profession"] in ["Mesmer", "Chronomancer", "Mirage", "Virtuoso"]:
+		if player["profession"] in ["Mesmer", "Chronomancer", "Mirage", "Virtuoso", "Troubadour"]:
 			determine_clone_usage(player, skill_map, mesmer_shatter_skills)
 
 		if "combatReplayData" in player:
